@@ -370,7 +370,7 @@ function downloadReceipt() {
   doc.text("Batch", 14, y);
   doc.setFont("times", "normal");
   doc.setTextColor(240, 235, 225);
-  doc.text("GMERS Gotri MBBS", 60, y);
+  doc.text("Aagam Gandhi Batch 2022", 60, y);
   y += 10;
 
   // Thin divider
