@@ -1,311 +1,440 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dhurandhar — Batch Screening</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dhurandhar — Batch Screening</title>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Supabase JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- jsPDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
 
-  <style>
-    :root {
-      --gold: #c9a84c;
-      --gold-light: #e6c97a;
-      --ink: #0d0d0d;
-      --parchment: #faf6ee;
-      --red: #9b1c1c;
-    }
+    <style>
+      :root {
+        --gold: #c9a84c;
+        --gold-light: #e6c97a;
+        --ink: #0d0d0d;
+        --parchment: #faf6ee;
+        --red: #9b1c1c;
+      }
 
-    * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background-color: var(--ink);
-      color: var(--parchment);
-      min-height: 100vh;
-    }
+      body {
+        font-family: "DM Sans", sans-serif;
+        background-color: var(--ink);
+        color: var(--parchment);
+        min-height: 100vh;
+      }
 
-    .display-font { font-family: 'Playfair Display', serif; }
+      .display-font {
+        font-family: "Playfair Display", serif;
+      }
 
-    /* Cinematic grain overlay */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.4;
-    }
+      /* Cinematic grain overlay */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.4;
+      }
 
-    .gold-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, var(--gold), transparent);
-    }
+      .gold-divider {
+        height: 1px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          var(--gold),
+          transparent
+        );
+      }
 
-    .seat-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px; height: 40px;
-      border: 1.5px solid var(--gold);
-      border-radius: 6px;
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 600;
-      font-size: 0.85rem;
-      color: var(--gold);
-      background: rgba(201, 168, 76, 0.08);
-    }
+      .seat-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border: 1.5px solid var(--gold);
+        border-radius: 6px;
+        font-family: "DM Sans", sans-serif;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--gold);
+        background: rgba(201, 168, 76, 0.08);
+      }
 
-    .student-item {
-      transition: background 0.15s ease;
-    }
-    .student-item:hover:not(.is-disabled) {
-      background: rgba(201, 168, 76, 0.07);
-    }
-    .student-item.is-disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
+      .student-item {
+        transition: background 0.15s ease;
+      }
+      .student-item:hover:not(.is-disabled) {
+        background: rgba(201, 168, 76, 0.07);
+      }
+      .student-item.is-disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
 
-    .student-item input[type="checkbox"] {
-      accent-color: var(--gold);
-      width: 17px; height: 17px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-    .student-item.is-disabled input[type="checkbox"] {
-      cursor: not-allowed;
-    }
+      .student-item input[type="checkbox"] {
+        accent-color: var(--gold);
+        width: 17px;
+        height: 17px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .student-item.is-disabled input[type="checkbox"] {
+        cursor: not-allowed;
+      }
 
-    .btn-primary {
-      background: var(--gold);
-      color: var(--ink);
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      transition: background 0.2s, transform 0.1s;
-    }
-    .btn-primary:hover:not(:disabled) {
-      background: var(--gold-light);
-      transform: translateY(-1px);
-    }
-    .btn-primary:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      transform: none;
-    }
+      .btn-primary {
+        background: var(--gold);
+        color: var(--ink);
+        font-family: "DM Sans", sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        transition:
+          background 0.2s,
+          transform 0.1s;
+      }
+      .btn-primary:hover:not(:disabled) {
+        background: var(--gold-light);
+        transform: translateY(-1px);
+      }
+      .btn-primary:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+      }
 
-    .btn-outline {
-      border: 1.5px solid var(--gold);
-      color: var(--gold);
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      transition: background 0.2s;
-    }
-    .btn-outline:hover {
-      background: rgba(201, 168, 76, 0.12);
-    }
+      .btn-outline {
+        border: 1.5px solid var(--gold);
+        color: var(--gold);
+        font-family: "DM Sans", sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        transition: background 0.2s;
+      }
+      .btn-outline:hover {
+        background: rgba(201, 168, 76, 0.12);
+      }
 
-    /* Progress bar */
-    #progress-bar {
-      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      background: linear-gradient(90deg, var(--gold), var(--gold-light));
-    }
+      /* Progress bar */
+      #progress-bar {
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      }
 
-    /* Scrollable student list */
-    #student-list-container {
-      max-height: 480px;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--gold) transparent;
-    }
-    #student-list-container::-webkit-scrollbar { width: 5px; }
-    #student-list-container::-webkit-scrollbar-track { background: transparent; }
-    #student-list-container::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+      /* Scrollable student list */
+      #student-list-container {
+        max-height: 480px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--gold) transparent;
+      }
+      #student-list-container::-webkit-scrollbar {
+        width: 5px;
+      }
+      #student-list-container::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      #student-list-container::-webkit-scrollbar-thumb {
+        background: var(--gold);
+        border-radius: 3px;
+      }
 
-    /* Success panel slide-in */
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    #success-panel { animation: slideUp 0.4s ease forwards; }
+      /* Success panel slide-in */
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(24px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      #success-panel {
+        animation: slideUp 0.4s ease forwards;
+      }
 
-    /* Loading spinner */
-    .spinner {
-      width: 22px; height: 22px;
-      border: 2.5px solid rgba(0,0,0,0.3);
-      border-top-color: var(--ink);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+      /* Loading spinner */
+      .spinner {
+        width: 22px;
+        height: 22px;
+        border: 2.5px solid rgba(0, 0, 0, 0.3);
+        border-top-color: var(--ink);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
 
-    /* Search box */
-    #search-box {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(201,168,76,0.3);
-      color: var(--parchment);
-      font-family: 'DM Sans', sans-serif;
-    }
-    #search-box::placeholder { color: rgba(250,246,238,0.35); }
-    #search-box:focus { outline: none; border-color: var(--gold); }
+      /* Search box */
+      #search-box {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(201, 168, 76, 0.3);
+        color: var(--parchment);
+        font-family: "DM Sans", sans-serif;
+      }
+      #search-box::placeholder {
+        color: rgba(250, 246, 238, 0.35);
+      }
+      #search-box:focus {
+        outline: none;
+        border-color: var(--gold);
+      }
 
-    .card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(201,168,76,0.18);
-      border-radius: 12px;
-    }
+      .card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(201, 168, 76, 0.18);
+        border-radius: 12px;
+      }
 
-    /* Ticker tape header stars */
-    .star { color: var(--gold); font-size: 0.6rem; }
+      /* Ticker tape header stars */
+      .star {
+        color: var(--gold);
+        font-size: 0.6rem;
+      }
 
-    /* Mobile tweaks */
-    @media (max-width: 640px) {
-      .seat-badge { width: 34px; height: 34px; font-size: 0.75rem; }
-    }
-  </style>
-</head>
-<body class="relative z-10">
-
-  <!-- ─── HEADER ─────────────────────────────────────────── -->
-  <header class="text-center pt-10 pb-8 px-4">
-    <p class="text-xs tracking-[0.35em] uppercase mb-3" style="color:var(--gold);">
-      <span class="star">✦</span>&nbsp; GMERS Gotri MBBS &nbsp;<span class="star">✦</span>
-    </p>
-    <h1 class="display-font text-4xl sm:text-5xl md:text-6xl font-black leading-tight" style="color:var(--parchment);">
-      Dhurandhar
-    </h1>
-    <p class="display-font text-lg sm:text-xl mt-1 italic" style="color:var(--gold);">The Revenge</p>
-    <p class="mt-2 text-sm" style="color:rgba(250,246,238,0.5);">Batch Movie Screening — Registration</p>
-  </header>
-
-  <div class="gold-divider mx-6"></div>
-
-  <!-- ─── MAIN CONTENT ───────────────────────────────────── -->
-  <main class="max-w-2xl mx-auto px-4 pb-16 mt-8 space-y-6 relative z-10">
-
-    <!-- Seats Counter -->
-    <div class="card p-5">
-      <div class="flex justify-between items-center mb-3">
-        <span class="text-sm font-medium" style="color:rgba(250,246,238,0.65);">Seats Filled</span>
-        <span id="seats-counter" class="text-sm font-bold" style="color:var(--gold);">— / 100</span>
-      </div>
-      <div class="w-full h-2 rounded-full" style="background:rgba(255,255,255,0.08);">
-        <div id="progress-bar" class="h-2 rounded-full" style="width:0%"></div>
-      </div>
-      <p id="seats-status" class="text-xs mt-2" style="color:rgba(250,246,238,0.4);">Loading...</p>
-    </div>
-
-    <!-- Registration Form -->
-    <div id="registration-panel" class="card p-5 space-y-5">
-      <h2 class="display-font text-xl font-bold" style="color:var(--parchment);">Register Your Group</h2>
-
-      <!-- Search -->
-      <input
-        id="search-box"
-        type="text"
-        placeholder="Search student name…"
-        class="w-full px-4 py-2.5 rounded-lg text-sm"
-        oninput="filterStudents()"
-      />
-
-      <!-- Student List -->
-      <div id="student-list-container">
-        <div id="student-list" class="divide-y" style="border-color:rgba(201,168,76,0.1);">
-          <!-- populated by JS -->
-          <p class="text-center py-8 text-sm" style="color:rgba(250,246,238,0.4);">Loading students…</p>
-        </div>
-      </div>
-
-      <!-- Selected Preview -->
-      <div id="selected-preview" class="hidden">
-        <div class="gold-divider mb-4"></div>
-        <div class="flex justify-between items-center mb-2">
-          <p class="text-sm font-semibold" style="color:var(--gold);">Selected Group</p>
-          <span id="selected-count-badge" class="text-xs px-2 py-0.5 rounded-full font-bold" style="background:rgba(201,168,76,0.15);color:var(--gold);">0 selected</span>
-        </div>
-        <div id="selected-names" class="text-sm space-y-1" style="color:rgba(250,246,238,0.7);"></div>
-      </div>
-
-      <!-- Error message -->
-      <div id="error-msg" class="hidden text-sm px-4 py-3 rounded-lg" style="background:rgba(155,28,28,0.2);color:#fca5a5;border:1px solid rgba(155,28,28,0.4);"></div>
-
-      <!-- Register Button -->
-      <button
-        id="register-btn"
-        class="btn-primary w-full py-3 rounded-lg text-sm"
-        onclick="registerGroup()"
-        disabled
+      /* Mobile tweaks */
+      @media (max-width: 640px) {
+        .seat-badge {
+          width: 34px;
+          height: 34px;
+          font-size: 0.75rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="relative z-10">
+    <!-- ─── HEADER ─────────────────────────────────────────── -->
+    <header class="text-center pt-10 pb-8 px-4">
+      <p
+        class="text-xs tracking-[0.35em] uppercase mb-3"
+        style="color: var(--gold)"
       >
-        Register Group
-      </button>
-    </div>
+        <span class="star">✦</span>&nbsp; Aagam Gandhi Batch 2022 &nbsp;<span
+          class="star"
+          >✦</span
+        >
+      </p>
+      <h1
+        class="display-font text-4xl sm:text-5xl md:text-6xl font-black leading-tight"
+        style="color: var(--parchment)"
+      >
+        Dhurandhar
+      </h1>
+      <p
+        class="display-font text-lg sm:text-xl mt-1 italic"
+        style="color: var(--gold)"
+      >
+        The Revenge
+      </p>
+      <p class="mt-2 text-sm" style="color: rgba(250, 246, 238, 0.5)">
+        Batch Movie Screening — Registration
+      </p>
+    </header>
 
-    <!-- Success Panel (hidden initially) -->
-    <div id="success-panel" class="card p-6 hidden">
-      <div class="text-center mb-5">
-        <div class="text-4xl mb-2">🎬</div>
-        <h2 class="display-font text-2xl font-bold" style="color:var(--gold);">You're In!</h2>
-        <p class="text-sm mt-1" style="color:rgba(250,246,238,0.55);">Registration successful</p>
+    <div class="gold-divider mx-6"></div>
+
+    <!-- ─── MAIN CONTENT ───────────────────────────────────── -->
+    <main class="max-w-2xl mx-auto px-4 pb-16 mt-8 space-y-6 relative z-10">
+      <!-- Seats Counter -->
+      <div class="card p-5">
+        <div class="flex justify-between items-center mb-3">
+          <span
+            class="text-sm font-medium"
+            style="color: rgba(250, 246, 238, 0.65)"
+            >Seats Filled</span
+          >
+          <span
+            id="seats-counter"
+            class="text-sm font-bold"
+            style="color: var(--gold)"
+            >— / 100</span
+          >
+        </div>
+        <div
+          class="w-full h-2 rounded-full"
+          style="background: rgba(255, 255, 255, 0.08)"
+        >
+          <div
+            id="progress-bar"
+            class="h-2 rounded-full"
+            style="width: 0%"
+          ></div>
+        </div>
+        <p
+          id="seats-status"
+          class="text-xs mt-2"
+          style="color: rgba(250, 246, 238, 0.4)"
+        >
+          Loading...
+        </p>
       </div>
 
-      <div class="gold-divider mb-5"></div>
+      <!-- Registration Form -->
+      <div id="registration-panel" class="card p-5 space-y-5">
+        <h2
+          class="display-font text-xl font-bold"
+          style="color: var(--parchment)"
+        >
+          Register Your Group
+        </h2>
 
-      <div class="space-y-4 text-sm">
-        <div>
-          <p class="font-semibold mb-1" style="color:var(--gold);">Group Leader</p>
-          <p id="receipt-leader" style="color:var(--parchment);"></p>
+        <!-- Search -->
+        <input
+          id="search-box"
+          type="text"
+          placeholder="Search student name…"
+          class="w-full px-4 py-2.5 rounded-lg text-sm"
+          oninput="filterStudents()"
+        />
+
+        <!-- Student List -->
+        <div id="student-list-container">
+          <div
+            id="student-list"
+            class="divide-y"
+            style="border-color: rgba(201, 168, 76, 0.1)"
+          >
+            <!-- populated by JS -->
+            <p
+              class="text-center py-8 text-sm"
+              style="color: rgba(250, 246, 238, 0.4)"
+            >
+              Loading students…
+            </p>
+          </div>
         </div>
-        <div>
-          <p class="font-semibold mb-1" style="color:var(--gold);">Members</p>
-          <div id="receipt-members" style="color:var(--parchment);"></div>
+
+        <!-- Selected Preview -->
+        <div id="selected-preview" class="hidden">
+          <div class="gold-divider mb-4"></div>
+          <div class="flex justify-between items-center mb-2">
+            <p class="text-sm font-semibold" style="color: var(--gold)">
+              Selected Group
+            </p>
+            <span
+              id="selected-count-badge"
+              class="text-xs px-2 py-0.5 rounded-full font-bold"
+              style="background: rgba(201, 168, 76, 0.15); color: var(--gold)"
+              >0 selected</span
+            >
+          </div>
+          <div
+            id="selected-names"
+            class="text-sm space-y-1"
+            style="color: rgba(250, 246, 238, 0.7)"
+          ></div>
         </div>
-        <div>
-          <p class="font-semibold mb-2" style="color:var(--gold);">Your Seat Numbers</p>
-          <div id="receipt-seats" class="flex flex-wrap gap-2"></div>
-        </div>
-        <div>
-          <p class="font-semibold mb-1" style="color:var(--gold);">Registered At</p>
-          <p id="receipt-time" style="color:rgba(250,246,238,0.65);"></p>
-        </div>
+
+        <!-- Error message -->
+        <div
+          id="error-msg"
+          class="hidden text-sm px-4 py-3 rounded-lg"
+          style="
+            background: rgba(155, 28, 28, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(155, 28, 28, 0.4);
+          "
+        ></div>
+
+        <!-- Register Button -->
+        <button
+          id="register-btn"
+          class="btn-primary w-full py-3 rounded-lg text-sm"
+          onclick="registerGroup()"
+          disabled
+        >
+          Register Group
+        </button>
       </div>
 
-      <div class="gold-divider my-5"></div>
+      <!-- Success Panel (hidden initially) -->
+      <div id="success-panel" class="card p-6 hidden">
+        <div class="text-center mb-5">
+          <div class="text-4xl mb-2">🎬</div>
+          <h2
+            class="display-font text-2xl font-bold"
+            style="color: var(--gold)"
+          >
+            You're In!
+          </h2>
+          <p class="text-sm mt-1" style="color: rgba(250, 246, 238, 0.55)">
+            Registration successful
+          </p>
+        </div>
 
-      <button
-        id="download-btn"
-        class="btn-outline w-full py-3 rounded-lg text-sm"
-        onclick="downloadReceipt()"
-      >
-        ↓ Download Receipt (PDF)
-      </button>
+        <div class="gold-divider mb-5"></div>
 
-      <button
-        class="btn-primary w-full py-3 rounded-lg text-sm mt-3"
-        onclick="resetForm()"
-      >
-        Register Another Group
-      </button>
-    </div>
+        <div class="space-y-4 text-sm">
+          <div>
+            <p class="font-semibold mb-1" style="color: var(--gold)">
+              Group Leader
+            </p>
+            <p id="receipt-leader" style="color: var(--parchment)"></p>
+          </div>
+          <div>
+            <p class="font-semibold mb-1" style="color: var(--gold)">Members</p>
+            <div id="receipt-members" style="color: var(--parchment)"></div>
+          </div>
+          <div>
+            <p class="font-semibold mb-2" style="color: var(--gold)">
+              Your Seat Numbers
+            </p>
+            <div id="receipt-seats" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div>
+            <p class="font-semibold mb-1" style="color: var(--gold)">
+              Registered At
+            </p>
+            <p id="receipt-time" style="color: rgba(250, 246, 238, 0.65)"></p>
+          </div>
+        </div>
 
-  </main>
+        <div class="gold-divider my-5"></div>
 
-  <script src="script.js"></script>
-</body>
+        <button
+          id="download-btn"
+          class="btn-outline w-full py-3 rounded-lg text-sm"
+          onclick="downloadReceipt()"
+        >
+          ↓ Download Receipt (PDF)
+        </button>
+
+        <button
+          class="btn-primary w-full py-3 rounded-lg text-sm mt-3"
+          onclick="resetForm()"
+        >
+          Register Another Group
+        </button>
+      </div>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
 </html>

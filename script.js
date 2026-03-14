@@ -460,9 +460,14 @@ function downloadReceipt() {
   doc.setFont("times", "normal");
   doc.setFontSize(8);
   doc.setTextColor(100, 90, 70);
-  doc.text("Please carry this receipt to the screening venue.", W / 2, y, {
-    align: "center",
-  });
+  doc.text(
+    "We'll Try our best for optimal seat allocation; Please carry this receipt to the screening venue. Regards - Kunj Chauhan",
+    W / 2,
+    y,
+    {
+      align: "center",
+    },
+  );
 
   // Bottom gold bar
   const PH = doc.internal.pageSize.getHeight();
